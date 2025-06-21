@@ -7,6 +7,7 @@ from datetime import datetime
 from asgiref.sync import async_to_sync
 from django.http import HttpRequest, JsonResponse, StreamingHttpResponse
 from rest_framework.decorators import api_view
+from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 
 logger = logging.getLogger(__name__)
@@ -226,7 +227,7 @@ class LabView(APIView):
     Lab API エンドポイント。
 
     使用例:
-    curl -X GET "http://localhost:8001/api/app/lab?module=foo_bar_baz"
+    curl -i -X GET "http://localhost:8001/api/app/lab?module=foo_bar_baz"
 
     urls では:
     path('v1/lab', views.LabView.as_view())
@@ -237,7 +238,12 @@ class LabView(APIView):
         モジュール情報を返すAPI。
         """
         # クエリパラメータからmoduleを取得
-        module_name = request.GET.get("module", "default_module")
+        module_name = request.GET.get("module")
+
+        if not module_name:
+            # NOTE: エラー処理はなるべく DRF の機能を使うようにしている。
+            #       shared.exception_handlers.custom_exception_handler へ飛んでいきます。
+            raise ValidationError({"module": ["This query parameter is required."]})
 
         response_data = {
             "requestId": request.request_id,

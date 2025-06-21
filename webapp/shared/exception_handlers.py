@@ -27,10 +27,19 @@ def custom_exception_handler(exc: Exception, context: dict[str, Any]) -> Respons
     response: Response | None = exception_handler(exc, context)
     request: Request = context["request"]
 
+    # NOTE: いちおうね。
+    request_id = getattr(request, "request_id", "unknown")
+
     # 何であれエラーが発生した場合はロギング。
-    logger.exception(f"Exception occurred during processing request ID: {request.request_id}")
+    logger.exception(f"Exception occurred during processing request ID: {request_id}")
 
     if response:
+        # DRF のエラーレスポンスにも requestId, message を追加。
+        response.data = {
+            "requestId": request_id,
+            "message": "An error occurred while processing your request.",
+            "error": response.data,
+        }
         return response
 
     # 500 エラーの場合はしっかりリクエストをロギング。
@@ -40,7 +49,9 @@ def custom_exception_handler(exc: Exception, context: dict[str, Any]) -> Respons
             "method": request.method,
             "path": request.path,
             "data": request.data,
-            "request_id": request.request_id,
+            "request_id": request_id,
         }
     )
-    return JsonResponse({"message": "Internal Server Error"}, status=HTTP_500_INTERNAL_SERVER_ERROR)
+    return JsonResponse(
+        {"requestId": request_id, "message": "Internal Server Error"}, status=HTTP_500_INTERNAL_SERVER_ERROR
+    )

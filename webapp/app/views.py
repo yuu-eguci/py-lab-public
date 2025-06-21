@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import time
 from datetime import datetime
@@ -113,7 +114,7 @@ class SSEView(APIView):
     SSE (Server-Sent Events) でクライアントに少しずつメッセージを返すパターン。
 
     使用例:
-    curl -N http://localhost:8001/api/app/sse
+    curl -i --no-buffer -X GET http://localhost:8001/api/app/sse
 
     または JavaScript で:
     const eventSource = new EventSource('http://localhost:8001/api/app/sse');
@@ -129,32 +130,32 @@ class SSEView(APIView):
         """
         SSE ストリームを開始する。
         """
-        # StreamingHttpResponseを作成し、イベントストリーム生成関数を渡す
-        # content_type="text/event-stream"でSSE用のMIMEタイプを設定
-        response = StreamingHttpResponse(self._event_stream(request), content_type="text/event-stream")
+        # SSE は、 StreamingHttpResponse + content_type="text/event-stream" で実現するっぽい。
+        response = StreamingHttpResponse(self.__event_stream(request), content_type="text/event-stream")
 
-        # ブラウザにキャッシュさせないよう設定（リアルタイムデータのため）
+        # ブラウザにキャッシュさせないよう設定 (よく分かってない)。
         response["Cache-Control"] = "no-cache"
 
-        # CORS設定：すべてのオリジンからのアクセスを許可
-        response["Access-Control-Allow-Origin"] = "*"
-
-        # CORS設定：Cache-Controlヘッダーの送信を許可
-        response["Access-Control-Allow-Headers"] = "Cache-Control"
-
-        # 設定済みのStreamingHttpResponseを返す
         return response
 
-    def _event_stream(self, request):
+    def __event_stream(self, request):
         """
         SSE イベントストリームを生成する。
         """
+
         # 接続開始メッセージ
-        yield f"data: {{'requestId': '{request.request_id}', 'message': 'SSE connection started', 'timestamp': '{datetime.now().isoformat()}'}}\n\n"
+        # なんかよく分かんないんだが、 SSE では、 `data: ここにメッセージ\n\n` という形式を使うらしい。
+        # DOC: https://html.spec.whatwg.org/multipage/server-sent-events.html#server-sent-events
+        start_message = {
+            "requestId": request.request_id,
+            "message": "SSE connection started",
+            "timestamp": datetime.now().isoformat(),
+        }
+        yield f"data: {json.dumps(start_message)}\n\n"
 
         # 10回のメッセージを1秒間隔で送信
         for i in range(1, 11):
-            time.sleep(1)  # 1秒待機
+            time.sleep(1)
 
             message_data = {
                 "requestId": request.request_id,
@@ -163,8 +164,8 @@ class SSEView(APIView):
                 "timestamp": datetime.now().isoformat(),
             }
 
-            # SSE フォーマットでデータを送信
-            yield f"data: {message_data}\n\n"
+            # SSE フォーマットでJSONデータを送信
+            yield f"data: {json.dumps(message_data)}\n\n"
 
             logger.info(f"SSE message sent: {message_data}")
 
@@ -174,6 +175,6 @@ class SSEView(APIView):
             "message": "SSE stream completed",
             "timestamp": datetime.now().isoformat(),
         }
-        yield f"data: {final_message}\n\n"
+        yield f"data: {json.dumps(final_message)}\n\n"
 
         logger.info("SSE stream completed")

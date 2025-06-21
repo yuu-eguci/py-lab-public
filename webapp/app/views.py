@@ -219,3 +219,37 @@ class SSEView(APIView):
             if connection_id in SSEView._active_connections:
                 del SSEView._active_connections[connection_id]
                 logger.info(f"SSE connection {connection_id} removed from active connections")
+
+
+class LabView(APIView):
+    """
+    Lab API エンドポイント。
+
+    使用例:
+    curl -X GET "http://localhost:8001/api/app/lab?module=foo_bar_baz"
+
+    urls では:
+    path('v1/lab', views.LabView.as_view())
+    """
+
+    def get(self, request, *args, **kwargs):
+        """
+        モジュール情報を返すAPI。
+        """
+        # クエリパラメータからmoduleを取得
+        module_name = request.GET.get("module", "default_module")
+
+        response_data = {
+            "requestId": request.request_id,
+            "message": f"How to use {module_name}",
+            "data": {
+                "module": module_name,
+                "description": "This module provides functionalities for ...",
+                "args": {
+                    "arg1": {"description": "Description of arg1"},
+                    "arg2": {"description": "Description of arg2"},
+                },
+            },
+        }
+
+        return JsonResponse(response_data)

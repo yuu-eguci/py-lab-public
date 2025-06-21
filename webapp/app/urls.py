@@ -11,4 +11,6 @@ urlpatterns = [
     path('baz', views.BazView.as_view()),
     # SSE (Server-Sent Events) で実装した View。
     path('sse', views.SSEView.as_view()),
+    # Lab API エンドポイント。
+    path('lab', views.LabView.as_view()),
 ]

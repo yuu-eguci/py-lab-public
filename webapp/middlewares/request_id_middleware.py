@@ -10,6 +10,6 @@ class RequestIDMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        request.request_id = str(uuid.uuid4())[0:8]
+        request.request_id = 'rq-' + str(uuid.uuid4())[0:8]
         response = self.get_response(request)
         return response

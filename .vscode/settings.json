@@ -5,6 +5,11 @@
     "python.autoComplete.extraPaths": [
         "${workspaceFolder}/webapp/.venv/lib/python3.13/site-packages"
     ],
+    // これ↑によって外部モジュールを参照できてるのに、 Pylance が 'reportMissingModuleSource' を出してくる。
+    // それを無視するための設定。
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportMissingModuleSource": "none"
+    },
 
     "editor.codeActionsOnSave": {
         "source.organizeImports": "never"

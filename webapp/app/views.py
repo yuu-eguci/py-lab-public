@@ -68,12 +68,12 @@ class BazView(APIView):
           まだ良くわかっていないのだけど、 ASGI サーバでのみ有効なのかもしれない。
 
     POST 面倒くさいよね? どうぞ curl です。
-    curl -X POST http://localhost:8001/api/app/bar \
+    curl -X POST http://localhost:8001/api/app/baz \
         -H "Content-Type: application/json" \
-        -d '{"value": "bar"}'
+        -d '{"value": "baz"}'
 
     urls では:
-    path('bar', views.BarView.as_view())
+    path('baz', views.BazView.as_view())
     """
 
     def post(self, request, *args, **kwargs):

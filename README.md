@@ -1,3 +1,21 @@
+py-lab-public
+===
+
+🐍 ⚛️ 🐳 🇳 py-lab をウェブで公開するプロジェクトだよ。
+
+## コイツの楽しいところ
+
+- ローカルでは普通に lab として使えばいい
+- サーバでは lab のアプリケーションを import して、ウェブアプリケーションとして公開する
+
+```bash
+# Lab として使うとき。
+docker compose up -d; docker compose exec webapp-service bash
+cd ./lab
+```
+
+***
+
 django-react-gemini ♊
 ===
 
@@ -62,12 +80,12 @@ docker compose exec webapp-service bash
 python -V
 # --> Python 3.13.2
 pipenv --version
-# --> pipenv, version 2024.4.1
+# --> pipenv, version 2025.0.3
 yarn -v
 # --> 1.22.22
 
 (cd ./frontend-react; yarn list react)
-# --> └─ react@19.0.0
+# --> └─ react@19.1.0
 
 # Django のほう。
 # NOTE: PIPENV_VENV_IN_PROJECT は env で設定してある。

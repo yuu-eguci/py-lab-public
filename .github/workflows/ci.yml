@@ -1,0 +1,68 @@
+name: ci
+
+on:
+  push:
+    branches: [ main ]
+
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: '3.13'
+  NODE_VERSION: '22.x'
+
+jobs:
+  # webapp の Django 側をテストします。
+  django-job:
+    runs-on: ubuntu-latest
+
+    # pipenv には working-directory: ./webapp のひとつ上の .env を使ってほしい。
+    env:
+      PIPENV_DOTENV_LOCATION: ../local.env
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install Pipenv
+        run: python -m pip install pipenv
+
+      # NOTE: 以降、 Python のルートディレクトリは ./webapp です。
+      - name: Install dependencies
+        run: pipenv sync --dev
+        working-directory: ./webapp
+
+      - name: Run Ruff linting
+        run: pipenv run ruff check .
+        working-directory: ./webapp
+
+      - name: Run Django tests
+        run: pipenv run python manage.py test --failfast --parallel --settings=config.settings_test
+        working-directory: ./webapp
+
+  # webapp の React 側をテストを yarn でします。
+  react-job:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # NOTE: 以降、 Node.js のルートディレクトリは ./webapp/frontend-react です。
+      - name: Install dependencies
+        run: yarn install --dev
+        working-directory: ./webapp/frontend-react
+
+      - name: Run ESLint linting
+        run: yarn lint
+        working-directory: ./webapp/frontend-react
+
+      - name: Run React tests
+        # run 無し: watch mode
+        # run 有り: いつもの
+        run: yarn test run
+        working-directory: ./webapp/frontend-react

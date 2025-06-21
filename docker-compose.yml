@@ -1,0 +1,57 @@
+# service = container
+services:
+
+  # service name (ほかから参照するとき使うので重要です。)
+  mysql-service:
+    # NOTE: container name conflict を防ぐため gemini- をつけている。
+    container_name: gemini-mysql-container
+    build:
+      context: ./mysql-container
+      dockerfile: Dockerfile
+    # NOTE: 他のプロジェクトの mysql との重複を避けるため、変更している。
+    ports:
+      - 3307:3306
+    volumes:
+      - ./db/mysql_data:/var/lib/mysql
+      - ./db/mysql_log:/var/log/mysql
+      - ./db/mysql_conf:/etc/mysql/conf.d
+    # NOTE: 開発環境では .env を使うし、本番環境では .env を (GitHub Actions が) 上書きして使うことを想定。
+    environment:
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+
+  webapp-service:
+    # NOTE: container name conflict を防ぐため gemini- をつけている。
+    container_name: gemini-webapp-container
+    build:
+      context: ./webapp-container
+      dockerfile: Dockerfile
+    # NOTE: 他のプロジェクトの django との重複を避けるため、変更している。
+    # NOTE: それぞれ Django と React のためのポート。
+    ports:
+      # NOTE: よく間違えるからメモ -> host 側 : container 側
+      # Django 用。 runserver も 8000 だし、 gunicorn も 8000 にしてる (Dockerfile で)。
+      - 8001:8000
+      # yarn dev で React を配信する用
+      - 5001:5173
+    # tty, stdin_open しておくと exec するときに -it がいらないみたい。
+    tty: true
+    stdin_open: true
+    volumes:
+      - ./webapp:/webapp
+    # NOTE: 開発環境では .env を使うし、本番環境では .env を (GitHub Actions が) 上書きして使うことを想定。
+    environment:
+      # Pipenv 仮想環境を webapp ディレクトリ内に作るための設定。
+      - PIPENV_VENV_IN_PROJECT=1
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_HOSTNAME=${MYSQL_HOSTNAME}
+      - MYSQL_PORT=${MYSQL_PORT}
+      - APP_HOST=${APP_HOST}
+    depends_on:
+      - mysql-service

@@ -1,0 +1,33 @@
+{
+    "workbench.colorCustomizations": {
+        "activityBar.background": "#2B3168",
+    },
+    "python.autoComplete.extraPaths": [
+        "${workspaceFolder}/webapp/.venv/lib/python3.13/site-packages"
+    ],
+
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "never"
+    },
+
+    // DOC (https://github.com/astral-sh/ruff-vscode) の、
+    // "Taken together, you can configure Ruff to format, fix, and organize imports on-save via the following settings.json"
+    // の設定。
+    "[python]": {
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.fixAll": "explicit",
+            "source.organizeImports": "explicit"
+        },
+        "editor.defaultFormatter": "charliermarsh.ruff"
+    },
+    // Mypy 拡張機能が pyproject.toml を読み込むようにするための設定。
+    "mypy-type-checker.args": [
+        "\"mypy-type-checker.args\" = [\"--config-file=./webapp/pyproject.toml\"]"
+    ],
+
+    // このリポジトリの Python は Docker 内部にある。 Ruff からは使用不可。
+    // というわけでローカル Python を使うように設定。
+    // もしローカル Python のコマンドがこれとは違うなら、変更してね。
+    "ruff.interpreter": ["python3"]
+}

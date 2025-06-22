@@ -50,7 +50,7 @@ function HomePage() {
   const [leftError, setLeftError] = useState<string | null>(null);
 
   // 右ボタン（SSE実行）用の状態
-  const [rightResult, setRightResult] = useState<string | null>(null);
+  const [rightResult, setRightResult] = useState<string>("");
   const [rightLoading, setRightLoading] = useState(false);
   const [rightError, setRightError] = useState<string | null>(null);
 
@@ -81,16 +81,74 @@ function HomePage() {
     }
   };
 
-  const handleRightButtonClick = () => {
+  const handleRightButtonClick = async () => {
     setRightLoading(true);
     setRightError(null);
-    setRightResult(null);
+    setRightResult("");
 
-    // TODO: SSE実装予定
-    setTimeout(() => {
-      setRightResult("SSE実行結果がここに表示されます（実装予定）");
+    try {
+      const response = await fetch("http://localhost:8001/api/app/lab", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          module: "foo",
+          args: {
+            arg1: "12345",
+            arg2: "67890",
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      if (!response.body) {
+        throw new Error("Response body is null");
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          break;
+        }
+
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split("\n");
+
+        for (const line of lines) {
+          if (line.startsWith("data: ")) {
+            try {
+              const jsonStr = line.substring(6); // "data: " を除去
+              const eventData = JSON.parse(jsonStr);
+
+              if (
+                eventData.data &&
+                eventData.data.message &&
+                eventData.data.sentAt
+              ) {
+                const formattedMessage = `[${eventData.data.sentAt}]\n${eventData.data.message}\n\n`;
+                setRightResult((prev) => prev + formattedMessage);
+              }
+            } catch {
+              console.warn("Failed to parse SSE data:", line);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      setRightError(
+        err instanceof Error ? err.message : "Unknown error occurred"
+      );
+    } finally {
       setRightLoading(false);
-    }, 1500);
+    }
   };
 
   return (

@@ -272,3 +272,30 @@ class LabView(APIView):
         except AttributeError:
             # get_spec 関数が見つからない場合
             raise ValidationError({"module": [f"Module '{module_name}' does not have a 'get_spec' function."]})
+
+    def post(self, request, *args, **kwargs):
+        """
+        モジュールを実行するAPI。
+        """
+        # リクエストボディからmoduleとargsを取得
+        module_name = request.data.get("module")
+        args = request.data.get("args", {})
+
+        if not module_name:
+            raise ValidationError({"module": ["This field is required."]})
+
+        if not isinstance(args, dict):
+            raise ValidationError({"args": ["This field must be a dictionary."]})
+
+        # とりあえず空っぽの実装
+        response_data = {
+            "requestId": request.request_id,
+            "message": f"Module '{module_name}' executed successfully",
+            "data": {
+                "module": module_name,
+                "args": args,
+                "result": "Not implemented yet",
+            },
+        }
+
+        return JsonResponse(response_data)

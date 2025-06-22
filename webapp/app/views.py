@@ -189,9 +189,9 @@ class LabView(APIView):
 
     def get(self, request, *args, **kwargs):
         """
-        モジュール情報を返すAPI。
+        モジュール情報を返す API。
         """
-        # クエリパラメータからmoduleを取得
+        # クエリパラメータから module を取得
         module_name = request.GET.get("module")
 
         if not module_name:

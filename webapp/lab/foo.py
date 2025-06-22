@@ -15,11 +15,14 @@ def get_spec() -> ModuleSpec:
     )
 
 
-def main(arg1: str, arg2: str) -> str:
+def main(arg1: str, arg2: str):
     """
-    メイン関数
+    メイン関数 - ジェネレーター版
     """
-    return f'foo {arg1} {arg2}'
+    yield f'Starting foo module with args: {arg1}, {arg2}'
+    yield f'Processing...'
+    yield f'Result: foo {arg1} {arg2}'
+    yield f'Completed foo module execution'
 
 
 if __name__ == "__main__":

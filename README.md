@@ -1,18 +1,24 @@
 py-lab-public
 ===
 
-🐍 ⚛️ 🐳 🇳 py-lab をウェブで公開するプロジェクトだよ。
+🐍 ⚛️ 🐳 🇳 Python 3.13 + Django 5 + React 19 + Docker + SSE (Server-Sent Events)
 
-## コイツの楽しいところ
+## Description
 
-- ローカルでは普通に lab として使えばいい
-- サーバでは lab のアプリケーションを import して、ウェブアプリケーションとして公開する
+- へー、 SSE っていうのがあるんだ。なんかに使ってみたいなー。
+- (この間、3年くらいの年月が流れた……)
+- 土曜の朝のぼく「Server 側で実行した Python の log を逐一ブラウザに返すとかできるんじゃね?!」
+- 土曜の朝のぼく「やる!」
+- 日曜の夜のぼく「できた!」
 
-```bash
-# Lab として使うとき。
-docker compose up -d; docker compose exec webapp-service bash
-cd ./lab
-```
+ここに動画を置く予定
+
+- 将来的にはこんなふうにしたい↓
+    - いろんな Python scripts を lab に置く
+    - React のフロントエンドから、実行したい script を選ぶ
+    - ポチッと押すとその script が実行されて、進捗も見れるし結果もブラウザ上で得られる
+
+このリポジトリは django-react-gemini を template にしている↓
 
 ***
 

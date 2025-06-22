@@ -10,7 +10,7 @@ from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 
-from lab.services import LabModuleSpecService
+from services.lab_module_spec_service import LabModuleSpecService
 
 logger = logging.getLogger(__name__)
 

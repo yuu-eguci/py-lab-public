@@ -1,7 +1,7 @@
 import importlib
 import logging
 
-from .module_specs import ModuleSpec
+from lab.module_specs import ModuleSpec
 
 logger = logging.getLogger(__name__)
 

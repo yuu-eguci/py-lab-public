@@ -10,6 +10,8 @@ from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 
+from lab.services import LabModuleSpecService
+
 logger = logging.getLogger(__name__)
 
 
@@ -245,16 +247,17 @@ class LabView(APIView):
             #       shared.exception_handlers.custom_exception_handler へ飛んでいきます。
             raise ValidationError({"module": ["This query parameter is required."]})
 
+        # LabModuleSpecService を使用してモジュール仕様を取得
+        service = LabModuleSpecService()
+        module_spec = service.get_module_spec(module_name)
+
         response_data = {
             "requestId": request.request_id,
             "message": f"How to use {module_name}",
             "data": {
-                "module": module_name,
-                "description": "This module provides functionalities for ...",
-                "args": {
-                    "arg1": {"description": "Description of arg1"},
-                    "arg2": {"description": "Description of arg2"},
-                },
+                "module": module_spec.module,
+                "description": module_spec.description,
+                "args": module_spec.args,
             },
         }
 

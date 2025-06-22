@@ -1,8 +1,8 @@
 import asyncio
-import json
 import logging
 import time
 from datetime import datetime
+from typing import Generator
 
 from asgiref.sync import async_to_sync
 from django.http import HttpRequest, JsonResponse, StreamingHttpResponse
@@ -12,6 +12,7 @@ from rest_framework.views import APIView
 
 from services.lab_module_execute_sse_service import LabModuleExecuteSSEService
 from services.lab_module_spec_service import LabModuleSpecService
+from shared.sse_formatters import SSEFormatter
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +134,7 @@ class SSEView(APIView):
     # SSE 接続の状態を管理するクラス変数。
     _active_connections = {}
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request: HttpRequest, *args, **kwargs) -> StreamingHttpResponse:
         """
         SSE ストリームを開始する。
         """
@@ -145,7 +146,7 @@ class SSEView(APIView):
 
         return response
 
-    def _event_stream(self, request):
+    def _event_stream(self, request: HttpRequest) -> Generator[str, None, None]:
         """
         SSE イベントストリームを生成する。
 
@@ -170,38 +171,19 @@ class SSEView(APIView):
 
         try:
             # 接続開始メッセージ
-            # なんかよく分かんないんだが、 SSE では、 `data: ここにメッセージ\n\n` という形式を使うらしい。
-            # DOC: https://html.spec.whatwg.org/multipage/server-sent-events.html#server-sent-events
-            start_message = {
-                "requestId": request.request_id,
-                "message": "SSE connection started",
-                "timestamp": datetime.now().isoformat(),
-            }
-            yield f"data: {json.dumps(start_message)}\n\n"
+            yield SSEFormatter.format_message(request.request_id, "SSE connection started")
 
             # 10回のメッセージを1秒間隔で送信
             for i in range(1, 11):
                 time.sleep(1)
 
-                message_data = {
-                    "requestId": request.request_id,
-                    "message": f"Message {i} of 10",
-                    "progress": f"{i * 10}%",
-                    "timestamp": datetime.now().isoformat(),
-                }
-
                 # SSE フォーマットでJSONデータを送信
-                yield f"data: {json.dumps(message_data)}\n\n"
+                yield SSEFormatter.format_message(request.request_id, f"Message {i} of 10", progress=f"{i * 10}%")
 
-                logger.info(f"SSE message sent: {message_data}")
+                logger.info(f"SSE message sent: Message {i} of 10")
 
             # 完了メッセージ
-            final_message = {
-                "requestId": request.request_id,
-                "message": "SSE stream completed",
-                "timestamp": datetime.now().isoformat(),
-            }
-            yield f"data: {json.dumps(final_message)}\n\n"
+            yield SSEFormatter.format_completion(request.request_id)
 
             logger.info("SSE stream completed")
 
@@ -210,13 +192,7 @@ class SSEView(APIView):
             logger.error(f"SSE stream error for connection {connection_id}: {e}")
 
             # エラーメッセージをクライアントに送信
-            error_message = {
-                "requestId": request.request_id,
-                "message": "SSE stream error occurred",
-                "error": str(e),
-                "timestamp": datetime.now().isoformat(),
-            }
-            yield f"data: {json.dumps(error_message)}\n\n"
+            yield SSEFormatter.format_error(request.request_id, f"SSE stream error occurred: {str(e)}")
 
         finally:
             # 接続をアクティブ接続リストから削除

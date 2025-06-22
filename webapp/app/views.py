@@ -11,6 +11,7 @@ from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 
 from services.lab_module_spec_service import LabModuleSpecService
+from services.lab_module_execute_sse_service import LabModuleExecuteSSEService
 
 logger = logging.getLogger(__name__)
 
@@ -286,6 +287,10 @@ class LabView(APIView):
 
         if not isinstance(args, dict):
             raise ValidationError({"args": ["This field must be a dictionary."]})
+
+        # LabModuleExecuteSSEService を使用してモジュールを実行
+        sse_service = LabModuleExecuteSSEService()
+        sse_service.execute_module_sse(module_name, args)
 
         # とりあえず空っぽの実装
         response_data = {

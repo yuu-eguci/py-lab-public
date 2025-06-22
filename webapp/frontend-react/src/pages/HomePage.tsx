@@ -1,5 +1,4 @@
 import PageHeader from "@/components/PageHeader";
-import SplitButtonSection from "@/components/SplitButtonSection";
 import {
   Container,
   ThemeProvider,
@@ -7,7 +6,9 @@ import {
   Box,
   Typography,
   Paper,
+  Button,
 } from "@mui/material";
+import { PlayArrow, Stop } from "@mui/icons-material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -43,14 +44,20 @@ const theme = createTheme({
 
 function HomePage() {
   const { t } = useTranslation();
-  const [apiResult, setApiResult] = useState<object | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // 左ボタン（仕様をゲット）用の状態
+  const [leftApiResult, setLeftApiResult] = useState<object | null>(null);
+  const [leftLoading, setLeftLoading] = useState(false);
+  const [leftError, setLeftError] = useState<string | null>(null);
+
+  // 右ボタン（SSE実行）用の状態
+  const [rightResult, setRightResult] = useState<string | null>(null);
+  const [rightLoading, setRightLoading] = useState(false);
+  const [rightError, setRightError] = useState<string | null>(null);
 
   const handleLeftButtonClick = async () => {
-    setLoading(true);
-    setError(null);
-    setApiResult(null);
+    setLeftLoading(true);
+    setLeftError(null);
+    setLeftApiResult(null);
 
     try {
       const response = await fetch(
@@ -62,18 +69,28 @@ function HomePage() {
       }
 
       const data = await response.json();
-      setApiResult(data);
+      setLeftApiResult(data);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unknown error occurred");
+      setLeftError(
+        err instanceof Error ? err.message : "Unknown error occurred"
+      );
     } finally {
       setTimeout(() => {
-        setLoading(false);
+        setLeftLoading(false);
       }, 1000);
     }
   };
 
   const handleRightButtonClick = () => {
-    alert(t("右のボタンがクリックされました！"));
+    setRightLoading(true);
+    setRightError(null);
+    setRightResult(null);
+
+    // TODO: SSE実装予定
+    setTimeout(() => {
+      setRightResult("SSE実行結果がここに表示されます（実装予定）");
+      setRightLoading(false);
+    }, 1500);
   };
 
   return (
@@ -85,63 +102,145 @@ function HomePage() {
             "← こっちで Python プログラムの仕様をゲットして、\nこっちでそれを実行する! →"
           )}
         />
-        <SplitButtonSection
-          leftButtonText={t("foo module の仕様をゲット")}
-          rightButtonText={t("foo module を SSE で実行する")}
-          onLeftClick={handleLeftButtonClick}
-          onRightClick={handleRightButtonClick}
-        />
 
-        {/* API 結果表示エリア */}
-        {(loading || error || apiResult) && (
-          <Box sx={{ mt: 3, px: 2 }}>
-            <Paper
-              elevation={3}
-              sx={{
-                p: 3,
-                backgroundColor: "background.paper",
-                border: "1px solid",
-                borderColor: "primary.light",
-              }}
-            >
-              <Typography variant="h6" gutterBottom color="text.primary">
-                {t("API response")}
-              </Typography>
+        {/* 左右分割レイアウト */}
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: { xs: "column", md: "row" },
+            gap: 3,
+            padding: 2,
+          }}
+        >
+          {/* 左側: 仕様をゲットボタンとその結果 */}
+          <Box sx={{ flex: 1 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                size="large"
+                startIcon={<PlayArrow />}
+                onClick={handleLeftButtonClick}
+                sx={{ minWidth: 200, minHeight: 60 }}
+              >
+                {t("こっちでプログラムの仕様をゲット")}
+              </Button>
+            </Box>
 
-              {loading && (
-                <Typography color="text.secondary">
-                  {t("読み込み中...")}
+            {/* 左ボタンの結果表示エリア */}
+            {(leftLoading || leftError || leftApiResult) && (
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 3,
+                  backgroundColor: "background.paper",
+                  border: "1px solid",
+                  borderColor: "primary.light",
+                }}
+              >
+                <Typography variant="h6" gutterBottom color="text.primary">
+                  {t("仕様取得結果")}
                 </Typography>
-              )}
 
-              {error && (
-                <Typography color="error">
-                  {t("エラー")}: {error}
-                </Typography>
-              )}
+                {leftLoading && (
+                  <Typography color="text.secondary">
+                    {t("読み込み中...")}
+                  </Typography>
+                )}
 
-              {apiResult && (
-                <Box
-                  component="pre"
-                  sx={{
-                    backgroundColor: "grey.100",
-                    p: 2,
-                    borderRadius: 1,
-                    overflow: "auto",
-                    fontSize: "0.875rem",
-                    fontFamily: "monospace",
-                    color: "text.primary",
-                    textAlign: "left",
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
-                  }}
-                >
-                  {JSON.stringify(apiResult, null, 2)}
-                </Box>
-              )}
-            </Paper>
+                {leftError && (
+                  <Typography color="error">
+                    {t("エラー")}: {leftError}
+                  </Typography>
+                )}
+
+                {leftApiResult && (
+                  <Box
+                    component="pre"
+                    sx={{
+                      backgroundColor: "grey.100",
+                      p: 2,
+                      borderRadius: 1,
+                      overflow: "auto",
+                      fontSize: "0.875rem",
+                      fontFamily: "monospace",
+                      color: "text.primary",
+                      textAlign: "left",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {JSON.stringify(leftApiResult, null, 2)}
+                  </Box>
+                )}
+              </Paper>
+            )}
           </Box>
-        )}
+
+          {/* 右側: SSE実行ボタンとその結果 */}
+          <Box sx={{ flex: 1 }}>
+            <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
+              <Button
+                variant="outlined"
+                color="secondary"
+                size="large"
+                startIcon={<Stop />}
+                onClick={handleRightButtonClick}
+                sx={{ minWidth: 200, minHeight: 60 }}
+              >
+                {t("こっちで Python を SSE で実行する")}
+              </Button>
+            </Box>
+
+            {/* 右ボタンの結果表示エリア */}
+            {(rightLoading || rightError || rightResult) && (
+              <Paper
+                elevation={3}
+                sx={{
+                  p: 3,
+                  backgroundColor: "background.paper",
+                  border: "1px solid",
+                  borderColor: "secondary.main",
+                }}
+              >
+                <Typography variant="h6" gutterBottom color="text.primary">
+                  {t("SSE実行結果")}
+                </Typography>
+
+                {rightLoading && (
+                  <Typography color="text.secondary">
+                    {t("実行中...")}
+                  </Typography>
+                )}
+
+                {rightError && (
+                  <Typography color="error">
+                    {t("エラー")}: {rightError}
+                  </Typography>
+                )}
+
+                {rightResult && (
+                  <Box
+                    sx={{
+                      backgroundColor: "grey.100",
+                      p: 2,
+                      borderRadius: 1,
+                      overflow: "auto",
+                      fontSize: "0.875rem",
+                      fontFamily: "monospace",
+                      color: "text.primary",
+                      textAlign: "left",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {rightResult}
+                  </Box>
+                )}
+              </Paper>
+            )}
+          </Box>
+        </Box>
       </Container>
     </ThemeProvider>
   );

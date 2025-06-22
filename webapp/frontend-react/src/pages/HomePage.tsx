@@ -1,13 +1,13 @@
 import PageHeader from "@/components/PageHeader";
+import { PlayArrow } from "@mui/icons-material";
 import {
-  ThemeProvider,
-  createTheme,
   Box,
-  Typography,
-  Paper,
   Button,
+  Paper,
+  ThemeProvider,
+  Typography,
+  createTheme,
 } from "@mui/material";
-import { PlayArrow, Stop } from "@mui/icons-material";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -165,7 +165,7 @@ function HomePage() {
         <PageHeader
           title={t("Web も Terminal も好きな Pythonista の欲張りセット")}
           description={t(
-            "← こっちで Python プログラムの仕様をゲットして、\nこっちでそれを実行する! →"
+            "← こっちで Python プログラムの仕様をゲットして、こっちでそれを実行する! →"
           )}
         />
       </Box>
@@ -174,19 +174,18 @@ function HomePage() {
       <Box
         sx={{
           width: "100%",
+          height: "calc(100vh - 100px)", // ヘッダー分を除いた全画面高さ
           display: "flex",
           flexDirection: { xs: "column", md: "row" },
-          height: "calc(100vh - 100px)", // ヘッダー分を除いた全画面高さ
           paddingTop: "60px",
+          backgroundColor: "background.default",
         }}
       >
         {/* 左側: 仕様をゲットボタンとその結果 - 画面の50% */}
         <Box
           sx={{
             flex: 1,
-            width: "50%",
             padding: 2,
-            display: "flex",
             flexDirection: "column",
           }}
         >
@@ -198,7 +197,7 @@ function HomePage() {
             onClick={handleLeftButtonClick}
             sx={{
               width: "100%",
-              minHeight: 60,
+              minHeight: 80,
               mb: 2,
             }}
           >
@@ -261,22 +260,19 @@ function HomePage() {
         <Box
           sx={{
             flex: 1,
-            width: "50%",
             padding: 2,
-            display: "flex",
             flexDirection: "column",
-            borderLeft: { md: "1px solid #e0e0e0" }, // デスクトップで境界線
           }}
         >
           <Button
-            variant="outlined"
-            color="secondary"
+            variant="contained"
+            color="primary"
             size="large"
-            startIcon={<Stop />}
+            startIcon={<PlayArrow />}
             onClick={handleRightButtonClick}
             sx={{
               width: "100%",
-              minHeight: 60,
+              minHeight: 80,
               mb: 2,
             }}
           >

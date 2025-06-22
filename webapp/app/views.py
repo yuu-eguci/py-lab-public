@@ -249,16 +249,26 @@ class LabView(APIView):
 
         # LabModuleSpecService を使用してモジュール仕様を取得
         service = LabModuleSpecService()
-        module_spec = service.get_module_spec(module_name)
 
-        response_data = {
-            "requestId": request.request_id,
-            "message": f"How to use {module_name}",
-            "data": {
-                "module": module_spec.module,
-                "description": module_spec.description,
-                "args": module_spec.args,
-            },
-        }
+        try:
+            module_spec = service.get_module_spec(module_name)
 
-        return JsonResponse(response_data)
+            response_data = {
+                "requestId": request.request_id,
+                "message": f"How to use {module_name}",
+                "data": {
+                    "module": module_spec.module,
+                    "description": module_spec.description,
+                    "args": module_spec.args,
+                },
+            }
+
+            return JsonResponse(response_data)
+
+        except ModuleNotFoundError:
+            # モジュールが見つからない場合
+            raise ValidationError({"module": [f"Module '{module_name}' not found in lab directory."]})
+
+        except AttributeError:
+            # get_spec 関数が見つからない場合
+            raise ValidationError({"module": [f"Module '{module_name}' does not have a 'get_spec' function."]})

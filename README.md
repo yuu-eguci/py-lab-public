@@ -11,7 +11,7 @@ py-lab-public
 - 土曜の朝のぼく「やる!」
 - 日曜の夜のぼく「できた!」
 
-ここに動画を置く予定
+https://github.com/user-attachments/assets/c5119bfe-03f8-423e-b47b-b203d84270bc
 
 - 将来的にはこんなふうにしたい↓
     - いろんな Python scripts を lab に置く

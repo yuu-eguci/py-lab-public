@@ -13,6 +13,10 @@ py-lab-public
 
 https://github.com/user-attachments/assets/c5119bfe-03f8-423e-b47b-b203d84270bc
 
+ちなみにこちらは `text/event-stream (SSE)` を受け取る Postman はこんなふうになる、という図。豆知識となっております。
+
+![](./docs/(2025-06-22)postman-demo.png)
+
 - 将来的にはこんなふうにしたい↓
     - いろんな Python scripts を lab に置く
     - React のフロントエンドから、実行したい script を選ぶ

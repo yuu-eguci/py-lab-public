@@ -15,6 +15,12 @@
         "source.organizeImports": "never"
     },
 
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.formatOnSave": true
+    },
+
     // DOC (https://github.com/astral-sh/ruff-vscode) の、
     // "Taken together, you can configure Ruff to format, fix, and organize imports on-save via the following settings.json"
     // の設定。

@@ -17,7 +17,8 @@ function PageHeader({ title, description }: PageHeaderProps) {
         display: "flex",
         alignItems: "center",
         gap: 2,
-        marginBottom: 3,
+        boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+        borderBottom: "1px solid rgba(255,255,255,0.1)",
       }}
     >
       <Avatar sx={{ bgcolor: "secondary.main" }}>

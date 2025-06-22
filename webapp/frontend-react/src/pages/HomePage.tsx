@@ -1,6 +1,5 @@
 import PageHeader from "@/components/PageHeader";
 import {
-  Container,
   ThemeProvider,
   createTheme,
   Box,
@@ -153,153 +152,186 @@ function HomePage() {
 
   return (
     <ThemeProvider theme={theme}>
-      <Container maxWidth="lg" sx={{ padding: 0 }}>
+      {/* 固定ヘッダー - 横幅いっぱい */}
+      <Box
+        sx={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+        }}
+      >
         <PageHeader
           title={t("Web も Terminal も好きな Pythonista の欲張りセット")}
           description={t(
             "← こっちで Python プログラムの仕様をゲットして、\nこっちでそれを実行する! →"
           )}
         />
+      </Box>
 
-        {/* 左右分割レイアウト */}
+      {/* メインコンテンツ - 画面を完全に真っ二つに分割 */}
+      <Box
+        sx={{
+          width: "100%",
+          display: "flex",
+          flexDirection: { xs: "column", md: "row" },
+          height: "calc(100vh - 100px)", // ヘッダー分を除いた全画面高さ
+          paddingTop: "60px",
+        }}
+      >
+        {/* 左側: 仕様をゲットボタンとその結果 - 画面の50% */}
         <Box
           sx={{
-            display: "flex",
-            flexDirection: { xs: "column", md: "row" },
-            gap: 3,
+            flex: 1,
+            width: "50%",
             padding: 2,
+            display: "flex",
+            flexDirection: "column",
           }}
         >
-          {/* 左側: 仕様をゲットボタンとその結果 */}
-          <Box sx={{ flex: 1 }}>
-            <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                size="large"
-                startIcon={<PlayArrow />}
-                onClick={handleLeftButtonClick}
-                sx={{ minWidth: 200, minHeight: 60 }}
-              >
-                {t("こっちでプログラムの仕様をゲット")}
-              </Button>
-            </Box>
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            startIcon={<PlayArrow />}
+            onClick={handleLeftButtonClick}
+            sx={{
+              width: "100%",
+              minHeight: 60,
+              mb: 2,
+            }}
+          >
+            {t("こっちでプログラムの仕様をゲット")}
+          </Button>
 
-            {/* 左ボタンの結果表示エリア */}
-            {(leftLoading || leftError || leftApiResult) && (
-              <Paper
-                elevation={3}
-                sx={{
-                  p: 3,
-                  backgroundColor: "background.paper",
-                  border: "1px solid",
-                  borderColor: "primary.light",
-                }}
-              >
-                <Typography variant="h6" gutterBottom color="text.primary">
-                  {t("仕様取得結果")}
+          {/* 左ボタンの結果表示エリア */}
+          {(leftLoading || leftError || leftApiResult) && (
+            <Paper
+              elevation={3}
+              sx={{
+                p: 3,
+                backgroundColor: "background.paper",
+                border: "1px solid",
+                borderColor: "primary.light",
+                flex: 1,
+                overflow: "auto",
+              }}
+            >
+              <Typography variant="h6" gutterBottom color="text.primary">
+                {t("仕様取得結果")}
+              </Typography>
+
+              {leftLoading && (
+                <Typography color="text.secondary">
+                  {t("読み込み中...")}
                 </Typography>
+              )}
 
-                {leftLoading && (
-                  <Typography color="text.secondary">
-                    {t("読み込み中...")}
-                  </Typography>
-                )}
-
-                {leftError && (
-                  <Typography color="error">
-                    {t("エラー")}: {leftError}
-                  </Typography>
-                )}
-
-                {leftApiResult && (
-                  <Box
-                    component="pre"
-                    sx={{
-                      backgroundColor: "grey.100",
-                      p: 2,
-                      borderRadius: 1,
-                      overflow: "auto",
-                      fontSize: "0.875rem",
-                      fontFamily: "monospace",
-                      color: "text.primary",
-                      textAlign: "left",
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                    }}
-                  >
-                    {JSON.stringify(leftApiResult, null, 2)}
-                  </Box>
-                )}
-              </Paper>
-            )}
-          </Box>
-
-          {/* 右側: SSE実行ボタンとその結果 */}
-          <Box sx={{ flex: 1 }}>
-            <Box sx={{ display: "flex", justifyContent: "center", mb: 2 }}>
-              <Button
-                variant="outlined"
-                color="secondary"
-                size="large"
-                startIcon={<Stop />}
-                onClick={handleRightButtonClick}
-                sx={{ minWidth: 200, minHeight: 60 }}
-              >
-                {t("こっちで Python を SSE で実行する")}
-              </Button>
-            </Box>
-
-            {/* 右ボタンの結果表示エリア */}
-            {(rightLoading || rightError || rightResult) && (
-              <Paper
-                elevation={3}
-                sx={{
-                  p: 3,
-                  backgroundColor: "background.paper",
-                  border: "1px solid",
-                  borderColor: "secondary.main",
-                }}
-              >
-                <Typography variant="h6" gutterBottom color="text.primary">
-                  {t("SSE実行結果")}
+              {leftError && (
+                <Typography color="error">
+                  {t("エラー")}: {leftError}
                 </Typography>
+              )}
 
-                {rightLoading && (
-                  <Typography color="text.secondary">
-                    {t("実行中...")}
-                  </Typography>
-                )}
-
-                {rightError && (
-                  <Typography color="error">
-                    {t("エラー")}: {rightError}
-                  </Typography>
-                )}
-
-                {rightResult && (
-                  <Box
-                    sx={{
-                      backgroundColor: "grey.100",
-                      p: 2,
-                      borderRadius: 1,
-                      overflow: "auto",
-                      fontSize: "0.875rem",
-                      fontFamily: "monospace",
-                      color: "text.primary",
-                      textAlign: "left",
-                      whiteSpace: "pre-wrap",
-                      wordBreak: "break-word",
-                    }}
-                  >
-                    {rightResult}
-                  </Box>
-                )}
-              </Paper>
-            )}
-          </Box>
+              {leftApiResult && (
+                <Box
+                  component="pre"
+                  sx={{
+                    backgroundColor: "grey.100",
+                    p: 2,
+                    borderRadius: 1,
+                    overflow: "auto",
+                    fontSize: "0.875rem",
+                    fontFamily: "monospace",
+                    color: "text.primary",
+                    textAlign: "left",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {JSON.stringify(leftApiResult, null, 2)}
+                </Box>
+              )}
+            </Paper>
+          )}
         </Box>
-      </Container>
+
+        {/* 右側: SSE実行ボタンとその結果 - 画面の50% */}
+        <Box
+          sx={{
+            flex: 1,
+            width: "50%",
+            padding: 2,
+            display: "flex",
+            flexDirection: "column",
+            borderLeft: { md: "1px solid #e0e0e0" }, // デスクトップで境界線
+          }}
+        >
+          <Button
+            variant="outlined"
+            color="secondary"
+            size="large"
+            startIcon={<Stop />}
+            onClick={handleRightButtonClick}
+            sx={{
+              width: "100%",
+              minHeight: 60,
+              mb: 2,
+            }}
+          >
+            {t("こっちで Python を SSE で実行する")}
+          </Button>
+
+          {/* 右ボタンの結果表示エリア */}
+          {(rightLoading || rightError || rightResult) && (
+            <Paper
+              elevation={3}
+              sx={{
+                p: 3,
+                backgroundColor: "background.paper",
+                border: "1px solid",
+                borderColor: "secondary.main",
+                flex: 1,
+                overflow: "auto",
+              }}
+            >
+              <Typography variant="h6" gutterBottom color="text.primary">
+                {t("SSE実行結果")}
+              </Typography>
+
+              {rightLoading && (
+                <Typography color="text.secondary">{t("実行中...")}</Typography>
+              )}
+
+              {rightError && (
+                <Typography color="error">
+                  {t("エラー")}: {rightError}
+                </Typography>
+              )}
+
+              {rightResult && (
+                <Box
+                  sx={{
+                    backgroundColor: "grey.100",
+                    p: 2,
+                    borderRadius: 1,
+                    overflow: "auto",
+                    fontSize: "0.875rem",
+                    fontFamily: "monospace",
+                    color: "text.primary",
+                    textAlign: "left",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
+                  }}
+                >
+                  {rightResult}
+                </Box>
+              )}
+            </Paper>
+          )}
+        </Box>
+      </Box>
     </ThemeProvider>
   );
 }

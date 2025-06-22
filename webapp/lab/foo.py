@@ -1,4 +1,4 @@
-from module_specs import ModuleSpec
+from .module_specs import ModuleSpec
 
 
 def get_spec() -> ModuleSpec:

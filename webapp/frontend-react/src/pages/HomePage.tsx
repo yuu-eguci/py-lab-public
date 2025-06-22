@@ -292,7 +292,13 @@ function HomePage() {
               }}
             >
               <Typography variant="h6" gutterBottom color="text.primary">
-                {t("SSE実行結果")}
+                {t("SSE 実行結果")}
+              </Typography>
+              <Typography color="text.secondary" gutterBottom align="left">
+                {t("SSE = Server-Sent Events")}
+              </Typography>
+              <Typography color="text.secondary" gutterBottom align="left">
+                {t("サーバ側からクライアント側へリアルタイムでデータを送ってくるやつ。")}
               </Typography>
 
               {rightLoading && (

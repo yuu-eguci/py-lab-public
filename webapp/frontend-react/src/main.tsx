@@ -1,6 +1,7 @@
 import App from '@/App'
 import '@/i18n'
-import '@/index.css'
+// NOTE: 独自の UI を作る邪魔。
+// import '@/index.css'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'

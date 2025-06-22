@@ -174,11 +174,10 @@ function HomePage() {
       <Box
         sx={{
           width: "100%",
-          height: "calc(100vh - 100px)", // ヘッダー分を除いた全画面高さ
+          height: "100%",
           display: "flex",
           flexDirection: { xs: "column", md: "row" },
           paddingTop: "60px",
-          backgroundColor: "background.default",
         }}
       >
         {/* 左側: 仕様をゲットボタンとその結果 - 画面の50% */}

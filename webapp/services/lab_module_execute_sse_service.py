@@ -53,7 +53,11 @@ class LabModuleExecuteSSEService:
 
             # main関数がジェネレーターを返す場合
             if hasattr(result, "__iter__") and hasattr(result, "__next__"):
-                yield from result
+                try:
+                    yield from result
+                except Exception as e:
+                    logger.error(f"Error during generator execution in module {module_name}: {e}")
+                    yield f"ERROR: {str(e)}"
             else:
                 # main関数が単一の値を返す場合
                 yield str(result)
@@ -62,4 +66,4 @@ class LabModuleExecuteSSEService:
 
         except Exception as e:
             logger.error(f"Error executing main function in module {module_name}: {e}")
-            raise
+            yield f"ERROR: {str(e)}"

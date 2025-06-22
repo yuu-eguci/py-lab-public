@@ -25,7 +25,7 @@ def foo_view(request: HttpRequest):
     - でもこのように↓複数 HTTP メソッドが欲しいなら分岐ができちゃう。クラスベースのほうがいいんじゃない?
 
     POST 面倒くさいよね? どうぞ curl です。
-    curl -X POST http://localhost:8001/api/app/foo \
+    curl -i -X POST http://localhost:8001/api/app/foo \
         -H "Content-Type: application/json" \
         -d '{"value": "foo"}'
 
@@ -131,74 +131,49 @@ class SSEView(APIView):
     path('sse', views.SSEView.as_view())
     """
 
-    # SSE 接続の状態を管理するクラス変数。
-    _active_connections = {}
-
     def get(self, request: HttpRequest, *args, **kwargs) -> StreamingHttpResponse:
         """
         SSE ストリームを開始する。
         """
-        # SSE は、 StreamingHttpResponse + content_type="text/event-stream" で実現するっぽい。
-        response = StreamingHttpResponse(self._event_stream(request), content_type="text/event-stream")
-
-        # ブラウザにキャッシュさせないよう設定 (よく分かってない)。
+        response = StreamingHttpResponse(self._create_sse_stream(request), content_type="text/event-stream")
         response["Cache-Control"] = "no-cache"
-
         return response
 
-    def _event_stream(self, request: HttpRequest) -> Generator[str, None, None]:
+    def _create_sse_stream(self, request: HttpRequest) -> Generator[str, None, None]:
         """
-        SSE イベントストリームを生成する。
-
-        出力↓
-        data: {"requestId": "rq-ef887586", "message": "SSE connection started",...}
-
-        data: {"requestId": "rq-ef887586", "message": "Message 1 of 10", "progress": "10%",...}
-
-        data: {"requestId": "rq-ef887586", "message": "Message 2 of 10", "progress": "20%",...}
-
-        data: {"requestId": "rq-ef887586", "message": "Message 9 of 10", "progress": "90%",...}
-
-        data: {"requestId": "rq-ef887586", "message": "Message 10 of 10", "progress": "100%",...}
-
-        data: {"requestId": "rq-ef887586", "message": "SSE stream completed",...}
-        こういう形式で Terminal に出力される。これぞ SSE!
+        SSE形式のストリームを作成する。
         """
-
-        # 接続をアクティブ接続リストに追加します。
-        connection_id = request.request_id
-        SSEView._active_connections[connection_id] = True
-
         try:
             # 接続開始メッセージ
             yield SSEFormatter.format_message(request.request_id, "SSE connection started")
 
-            # 10回のメッセージを1秒間隔で送信
-            for i in range(1, 11):
-                time.sleep(1)
-
-                # SSE フォーマットでJSONデータを送信
-                yield SSEFormatter.format_message(request.request_id, f"Message {i} of 10", progress=f"{i * 10}%")
-
-                logger.info(f"SSE message sent: Message {i} of 10")
+            # ビジネスロジックからメッセージを取得してSSE形式に変換
+            for i, message in enumerate(self._generate_demo_messages(), 1):
+                yield SSEFormatter.format_message(request.request_id, message, progress=f"{i * 10}%")
+                logger.info(f"SSE message sent: {message}")
 
             # 完了メッセージ
             yield SSEFormatter.format_completion(request.request_id)
-
             logger.info("SSE stream completed")
 
         except Exception as e:
             # エラーが発生した場合のログ出力
-            logger.error(f"SSE stream error for connection {connection_id}: {e}")
-
+            logger.error(f"SSE stream error: {e}")
             # エラーメッセージをクライアントに送信
             yield SSEFormatter.format_error(request.request_id, f"SSE stream error occurred: {str(e)}")
 
-        finally:
-            # 接続をアクティブ接続リストから削除
-            if connection_id in SSEView._active_connections:
-                del SSEView._active_connections[connection_id]
-                logger.info(f"SSE connection {connection_id} removed from active connections")
+    def _generate_demo_messages(self) -> Generator[str, None, None]:
+        """
+        デモメッセージを生成する。
+        10回のメッセージを1秒間隔で生成する。
+
+        NOTE: 本メソッドの機能は本当なら Service 層に定義したい。
+              本クラスはサンプルなので、ここに書いてるだけ。
+              将来的には SSEStreamService のような専用サービスに移動を検討。
+        """
+        for i in range(1, 11):
+            time.sleep(1)
+            yield f"Message {i} of 10"
 
 
 class LabView(APIView):

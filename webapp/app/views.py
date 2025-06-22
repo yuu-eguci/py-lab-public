@@ -180,9 +180,6 @@ class LabView(APIView):
     """
     Lab API エンドポイント。
 
-    使用例:
-    curl -i -X GET "http://localhost:8001/api/app/lab?module=foo_bar_baz"
-
     urls では:
     path('v1/lab', views.LabView.as_view())
     """
@@ -190,6 +187,9 @@ class LabView(APIView):
     def get(self, request, *args, **kwargs):
         """
         モジュール情報を返す API。
+
+        使用例:
+        curl -i -X GET "http://localhost:8001/api/app/lab?module=foo"
         """
         # クエリパラメータから module を取得
         module_name = request.GET.get("module")
@@ -228,6 +228,11 @@ class LabView(APIView):
     def post(self, request, *args, **kwargs):
         """
         モジュールを実行する API (SSE ストリーミング対応)。
+
+        使用例:
+        curl -i -X POST "http://localhost:8001/api/app/lab" \
+            -H "Content-Type: application/json" \
+            -d '{"module": "foo", "args": {"arg1": "12345", "arg2": "67890"}}'
         """
         # リクエストボディからmoduleとargsを取得
         module_name = request.data.get("module")

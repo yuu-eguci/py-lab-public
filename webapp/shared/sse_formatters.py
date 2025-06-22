@@ -1,5 +1,6 @@
 import json
-from datetime import datetime
+
+from django.utils import timezone
 
 
 class SSEFormatter:
@@ -26,7 +27,7 @@ class SSEFormatter:
         """
         response = {
             "requestId": request_id,
-            "data": {"message": message, "sentAt": datetime.now().isoformat(), **extra_data},
+            "data": {"message": message, "sentAt": timezone.now().strftime("%Y-%m-%dT%H:%M:%S%z"), **extra_data},
         }
         return f"data: {json.dumps(response)}\n\n"
 
@@ -45,7 +46,7 @@ class SSEFormatter:
         """
         response = {
             "requestId": request_id,
-            "data": {"error": error_message, "sentAt": datetime.now().isoformat(), **extra_data},
+            "data": {"error": error_message, "sentAt": timezone.now().strftime("%Y-%m-%dT%H:%M:%S%z"), **extra_data},
         }
         return f"data: {json.dumps(response)}\n\n"
 
@@ -63,6 +64,10 @@ class SSEFormatter:
         """
         response = {
             "requestId": request_id,
-            "data": {"message": "Stream completed", "sentAt": datetime.now().isoformat(), **extra_data},
+            "data": {
+                "message": "Stream completed",
+                "sentAt": timezone.now().strftime("%Y-%m-%dT%H:%M:%S%z"),
+                **extra_data,
+            },
         }
         return f"data: {json.dumps(response)}\n\n"

@@ -1,20 +1,35 @@
 import asyncio
 import logging
 import time
-from collections.abc import Generator
+from collections.abc import Callable, Generator
+from contextlib import closing
 from datetime import datetime
+from typing import Any
 
 from asgiref.sync import async_to_sync
+from django.conf import settings
 from django.http import HttpRequest, JsonResponse, StreamingHttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 
 from services.lab_module_execute_sse_service import LabModuleExecuteSSEService
+from services.lab_module_loader import LabModuleError
 from services.lab_module_spec_service import LabModuleSpecService
-from shared.sse_formatters import SSEFormatter
+from shared.sse_formatters import SSEFormatter, create_sse_response
 
 logger = logging.getLogger(__name__)
+
+
+def error_message_for_client(e: Exception) -> str:
+    """
+    SSE のエラーイベントでクライアントに返すメッセージを作ります。
+    例外の中身にはパスや設定値が入っていることがあるので、返すのは DEBUG のときだけにしています。
+    それ以外のときは requestId を手がかりにサーバのログを見てください。
+    """
+    if settings.DEBUG:
+        return f"{type(e).__name__}: {e}"
+    return "An error occurred during streaming. See server logs with the requestId."
 
 
 @api_view(["GET", "POST"])
@@ -135,9 +150,7 @@ class SSEView(APIView):
         """
         SSE ストリームを開始する。
         """
-        response = StreamingHttpResponse(self._create_sse_stream(request), content_type="text/event-stream")
-        response["Cache-Control"] = "no-cache"
-        return response
+        return create_sse_response(self._create_sse_stream(request))
 
     def _create_sse_stream(self, request: HttpRequest) -> Generator[str]:
         """
@@ -158,9 +171,9 @@ class SSEView(APIView):
 
         except Exception as e:
             # エラーが発生した場合のログ出力
-            logger.error(f"SSE stream error: {e}")
+            logger.exception(f"SSE stream error: {e}")
             # エラーメッセージをクライアントに送信
-            yield SSEFormatter.format_error(request.request_id, f"SSE stream error occurred: {str(e)}")
+            yield SSEFormatter.format_error(request.request_id, error_message_for_client(e))
 
     def _generate_demo_messages(self) -> Generator[str]:
         """
@@ -178,15 +191,15 @@ class SSEView(APIView):
 
 class LabView(APIView):
     """
-    Lab API エンドポイント。
+    Lab API エンドポイントです。
 
     urls では:
-    path('v1/lab', views.LabView.as_view())
+    path('lab', views.LabView.as_view())
     """
 
     def get(self, request, *args, **kwargs):
         """
-        モジュール情報を返す API。
+        モジュール情報を返す API です。
 
         使用例:
         curl -i -X GET "http://localhost:8001/api/app/lab?module=foo"
@@ -204,35 +217,28 @@ class LabView(APIView):
 
         try:
             module_spec = service.get_module_spec(module_name)
+        except LabModuleError as e:
+            # モジュールや get_spec 関数が見つからない場合
+            raise ValidationError({"module": [str(e)]}) from None
 
-            response_data = {
-                "requestId": request.request_id,
-                "message": f"How to use {module_name}",
-                "data": {
-                    "module": module_spec.module,
-                    "description": module_spec.description,
-                    "args": module_spec.args,
-                },
-            }
-
-            return JsonResponse(response_data)
-
-        except ModuleNotFoundError:
-            # モジュールが見つからない場合
-            raise ValidationError({"module": [f"Module '{module_name}' not found in lab directory."]}) from None
-
-        except AttributeError:
-            # get_spec 関数が見つからない場合
-            raise ValidationError(
-                {"module": [f"Module '{module_name}' does not have a 'get_spec' function."]}
-            ) from None
+        response_data = {
+            "requestId": request.request_id,
+            "message": f"How to use {module_name}",
+            "data": {
+                "module": module_spec.module,
+                "description": module_spec.description,
+                "args": module_spec.args,
+            },
+        }
+        return JsonResponse(response_data)
 
     def post(self, request, *args, **kwargs):
         """
-        モジュールを実行する API (SSE ストリーミング対応)。
+        モジュールを実行する API (SSE ストリーミング対応) です。
+        モジュールが使えるかどうかはストリームを始める前に確かめて、ダメなら 400 を返します。
 
         使用例:
-        curl -i -X POST "http://localhost:8001/api/app/lab" \
+        curl -i -N -X POST "http://localhost:8001/api/app/lab" \
             -H "Content-Type: application/json" \
             -d '{"module": "foo", "args": {"arg1": "12345", "arg2": "67890"}}'
         """
@@ -246,42 +252,46 @@ class LabView(APIView):
         if not isinstance(args, dict):
             raise ValidationError({"args": ["This field must be a dictionary."]})
 
-        # SSE ストリーミングレスポンスを返却
-        response = StreamingHttpResponse(
-            self._create_lab_sse_stream(request, module_name, args), content_type="text/event-stream"
-        )
-        response["Cache-Control"] = "no-cache"
-        return response
-
-    def _create_lab_sse_stream(self, request: HttpRequest, module_name: str, args: dict) -> Generator[str]:
-        """
-        Lab モジュール実行の SSE ストリームを作成する。
-        """
+        service = LabModuleExecuteSSEService()
         try:
-            # 開始メッセージ
-            yield SSEFormatter.format_message(
-                request.request_id, f"Starting module: {module_name}", module=module_name, args=args
-            )
-            logger.info(f"Lab module execution started: {module_name}")
+            main_func = service.get_main_function(module_name)
+        except LabModuleError as e:
+            # モジュールや main 関数が見つからない場合
+            raise ValidationError({"module": [str(e)]}) from None
 
-            # LabModuleExecuteSSEService を使用してモジュールを実行
-            sse_service = LabModuleExecuteSSEService()
+        # SSE ストリーミングレスポンスを返却
+        return create_sse_response(self._create_lab_sse_stream(request, service, module_name, main_func, args))
 
-            for message in sse_service.execute_module_sse(module_name, args):
-                # execute_module_sse から受け取ったメッセージをそのまま SSE 形式でフォーマット
-                yield SSEFormatter.format_message(request.request_id, message, module=module_name)
-                logger.info(f"Lab module message sent: {message}")
+    def _create_lab_sse_stream(
+        self,
+        request: HttpRequest,
+        service: LabModuleExecuteSSEService,
+        module_name: str,
+        main_func: Callable[..., Any],
+        args: dict[str, Any],
+    ) -> Generator[str]:
+        """
+        Lab モジュール実行の SSE ストリームを作成します。
+        例外が起きたらエラーイベントを返して終わり、完了イベントは返しません。
+        """
+        request_id = request.request_id
 
-            # 完了メッセージ
-            yield SSEFormatter.format_completion(request.request_id, module=module_name)
-            logger.info(f"Lab module execution completed: {module_name}")
+        # 開始メッセージ
+        yield SSEFormatter.format_message(request_id, f"Starting module: {module_name}", module=module_name, args=args)
+        logger.info(f"Lab module execution started: {module_name}")
 
-        except (ModuleNotFoundError, AttributeError) as e:
-            # モジュール/関数の存在チェックエラー (設定ミス)
-            logger.error(f"Lab module configuration error: {e}")
-            yield SSEFormatter.format_error(request.request_id, str(e), module=module_name)
-
+        try:
+            # NOTE: closing で、クライアントの切断などでこのストリームが close されたときに
+            #       lab module の generator も close されるようにしています。
+            with closing(service.execute_module_sse(main_func, args)) as messages:
+                for message in messages:
+                    yield SSEFormatter.format_message(request_id, message, module=module_name)
+                    logger.info(f"Lab module message sent: {message}")
         except Exception as e:
-            # その他の予期しないエラー
-            logger.error(f"Lab module execution error: {e}")
-            yield SSEFormatter.format_error(request.request_id, f"Unexpected error: {str(e)}", module=module_name)
+            logger.exception(f"Lab module execution error: {module_name} (requestId: {request_id})")
+            yield SSEFormatter.format_error(request_id, error_message_for_client(e), module=module_name)
+            return
+
+        # 完了メッセージ
+        yield SSEFormatter.format_completion(request_id, module=module_name)
+        logger.info(f"Lab module execution completed: {module_name}")

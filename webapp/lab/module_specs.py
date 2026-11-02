@@ -5,4 +5,5 @@ from dataclasses import dataclass, field
 class ModuleSpec:
     module: str
     description: str
-    args: dict[str, str] = field(default_factory=dict)
+    # 引数名 -> {"description": "説明"} の形です。
+    args: dict[str, dict[str, str]] = field(default_factory=dict)

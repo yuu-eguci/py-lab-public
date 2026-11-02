@@ -22,10 +22,9 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true,
 
-    // vite-tsconfig-paths に @ -> src/ 変換してもらうための設定。
-    "baseUrl": "./",
+    // @ -> src/ の alias です。 Vite は resolve.tsconfigPaths でこれを読みます。
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"]

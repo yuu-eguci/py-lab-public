@@ -38,7 +38,7 @@ class LabModuleSpecService:
 
         try:
             # get_spec 関数を取得して実行
-            get_spec_func = getattr(module, "get_spec")
+            get_spec_func = module.get_spec
             module_spec = get_spec_func()
             logger.info(f"Successfully retrieved spec for module: {module_name}")
             return module_spec

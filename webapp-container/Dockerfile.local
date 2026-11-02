@@ -1,10 +1,10 @@
 # 他の image はこちら https://hub.docker.com/_/python
-FROM python:3.13-slim-bookworm
+FROM python:3.14-slim-trixie
 
 # 開発環境では .pyc をスキップ。
-ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONDONTWRITEBYTECODE=1
 # 標準出力のバッファリングをスキップ。
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 
 WORKDIR /webapp
 
@@ -12,7 +12,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     libmariadb-dev gcc libc-dev default-mysql-client pkg-config \
     nginx curl && \
-    # NOTE: slim-bookworm のベースイメージには v18 しか無い。
+    # NOTE: Debian の nodejs は古めです。
     #       でも react-router-dom が新しめの node を要求してくる。
     #       Node の公式リポジトリから setup_current を使うと最新版が手に入る。
     #       しかし最新版は新しすぎるようで、 22 を指定。
@@ -24,7 +24,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip setuptools && \
-    pip install -U pipenv
+    pip install pipenv==2026.10.5
 
 RUN npm install --global yarn
 

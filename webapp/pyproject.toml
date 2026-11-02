@@ -1,15 +1,17 @@
 # DOC: https://docs.astral.sh/ruff/configuration/#configuring-ruff
 [tool.ruff]
 
-target-version = "py310"
+target-version = "py314"
 line-length = 120
 
 [tool.ruff.lint]
-# flake8 のエラーコードを指定 (E: スタイル, F: 論理エラー)
+# E: スタイル, F: 論理エラー, I: import 順, UP: 新しい書き方への置き換え, B: バグになりやすい書き方
 select = [
     "E",
     "F",
     "I",
+    "UP",
+    "B",
 ]
 ignore = [] # 無視するエラーコードがあれば指定
 

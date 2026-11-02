@@ -1,7 +1,16 @@
 py-lab-public
 ===
 
-🐍 ⚛️ 🐳 🇳 Python 3.13 + Django 5 + React 19 + Docker + SSE (Server-Sent Events)
+🐍 ⚛️ 🐳 🇳 Python 3.14 + Django 6.1 + React 19 + Docker + SSE (Server-Sent Events)
+
+## Status
+
+- Docker: 対応!
+- Python 3.14 / Django 6.1 / Django REST framework 3.18 / MySQL 8.4
+- Node.js 22 / React 19 / Vite 6 / MUI 7
+- Linter: Ruff, ESLint
+- Tests: Django test runner, Vitest (GitHub Actions で PR ごとに実行します)
+- Quick start: `cp ./local.env ./.env && cp ./webapp-container/Dockerfile.local ./webapp-container/Dockerfile && docker compose up -d` (このあとの手順は下の「runserver と yarn dev で起動するところまで」にあります)
 
 ## Description
 
@@ -88,9 +97,9 @@ docker compose up -d; docker compose exec webapp-service bash
 docker compose exec webapp-service bash
 # Check↓
 python -V
-# --> Python 3.13.2
+# --> Python 3.14.x
 pipenv --version
-# --> pipenv, version 2025.0.3
+# --> pipenv, version 2026.10.5
 yarn -v
 # --> 1.22.22
 

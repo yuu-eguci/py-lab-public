@@ -4,7 +4,7 @@ shared.tests.test_logging_formatters
 
 import logging
 import unittest
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from logging import LogRecord
 
 from ..logging_formatters import JSTFormatter, UTCFormatter
@@ -21,7 +21,7 @@ class TestJSTFormatter(unittest.TestCase):
         cls.record = LogRecord(
             name="test", level=logging.DEBUG, pathname="", lineno=0, msg="Sample message.", args=(), exc_info=None)
         # created を上書き。
-        cls.record.created = datetime.timestamp(datetime(2023, 2, 7, tzinfo=timezone.utc))
+        cls.record.created = datetime.timestamp(datetime(2023, 2, 7, tzinfo=UTC))
         # msecs を上書き。
         cls.record.msecs = 0
 

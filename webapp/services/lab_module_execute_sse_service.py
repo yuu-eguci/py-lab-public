@@ -1,6 +1,7 @@
 import importlib
 import logging
-from typing import Any, Generator
+from collections.abc import Generator
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +11,7 @@ class LabModuleExecuteSSEService:
     Lab モジュールをSSE形式で実行するサービスクラス。
     """
 
-    def execute_module_sse(self, module_name: str, args: dict[str, Any]) -> Generator[str, None, None]:
+    def execute_module_sse(self, module_name: str, args: dict[str, Any]) -> Generator[str]:
         """
         指定されたモジュールをSSE形式で実行する。
         webapp.lab.{module_name} をインポートし、main 関数を実行してその結果をyieldする。
@@ -40,7 +41,7 @@ class LabModuleExecuteSSEService:
 
         try:
             # main 関数を取得
-            main_func = getattr(module, "main")
+            main_func = module.main
             logger.info(f"Successfully found main function in module: {module_name}")
 
         except AttributeError as e:

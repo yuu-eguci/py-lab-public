@@ -1,7 +1,7 @@
 """
 test: shared.tests.test_logging_formatters
 """
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta, timezone
 from logging import Formatter, LogRecord
 
 
@@ -22,7 +22,7 @@ class JSTFormatter(Formatter):
             str: JST での時刻文字列。
         """
         # record.created を datetime オブジェクトに変換して JST に変換
-        ct: datetime = datetime.fromtimestamp(record.created, timezone.utc).astimezone(self.JST)
+        ct: datetime = datetime.fromtimestamp(record.created, UTC).astimezone(self.JST)
 
         # フォーマットが指定されているならそれに。
         if datefmt:
@@ -50,7 +50,7 @@ class UTCFormatter(Formatter):
             str: UTC での時刻文字列。
         """
         # record.created を datetime オブジェクトに変換。
-        ct: datetime = datetime.fromtimestamp(record.created, timezone.utc)
+        ct: datetime = datetime.fromtimestamp(record.created, UTC)
 
         # フォーマットが指定されているならそれに。
         if datefmt:

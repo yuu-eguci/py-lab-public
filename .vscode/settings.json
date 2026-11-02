@@ -3,7 +3,7 @@
         "activityBar.background": "#2B3168",
     },
     "python.autoComplete.extraPaths": [
-        "${workspaceFolder}/webapp/.venv/lib/python3.13/site-packages"
+        "${workspaceFolder}/webapp/.venv/lib/python3.14/site-packages"
     ],
     // これ↑によって外部モジュールを参照できてるのに、 Pylance が 'reportMissingModuleSource' を出してくる。
     // それを無視するための設定。

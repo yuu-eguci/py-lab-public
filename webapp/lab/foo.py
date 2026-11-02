@@ -1,5 +1,5 @@
 import time
-from typing import Generator
+from collections.abc import Generator
 
 from .module_specs import ModuleSpec
 
@@ -18,7 +18,7 @@ def get_spec() -> ModuleSpec:
     )
 
 
-def main(**args) -> Generator[str, None, None]:
+def main(**args) -> Generator[str]:
     """
     Main function - generator version
     """

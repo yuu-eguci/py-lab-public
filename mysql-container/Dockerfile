@@ -1,5 +1,5 @@
 # NOTE: AWS RDS の MySQL バージョンに合わせています。
-FROM mysql:8.0
+FROM mysql:8.4
 
 # NOTE: 8.0 から default collation が utf8mb4_0900_ai_ci です。
 #       日本語の collation として曖昧さが目立つので変更しています。

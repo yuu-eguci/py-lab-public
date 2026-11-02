@@ -1,8 +1,8 @@
 import asyncio
 import logging
 import time
+from collections.abc import Generator
 from datetime import datetime
-from typing import Generator
 
 from asgiref.sync import async_to_sync
 from django.http import HttpRequest, JsonResponse, StreamingHttpResponse
@@ -139,7 +139,7 @@ class SSEView(APIView):
         response["Cache-Control"] = "no-cache"
         return response
 
-    def _create_sse_stream(self, request: HttpRequest) -> Generator[str, None, None]:
+    def _create_sse_stream(self, request: HttpRequest) -> Generator[str]:
         """
         SSE形式のストリームを作成する。
         """
@@ -162,7 +162,7 @@ class SSEView(APIView):
             # エラーメッセージをクライアントに送信
             yield SSEFormatter.format_error(request.request_id, f"SSE stream error occurred: {str(e)}")
 
-    def _generate_demo_messages(self) -> Generator[str, None, None]:
+    def _generate_demo_messages(self) -> Generator[str]:
         """
         デモメッセージを生成する。
         10回のメッセージを1秒間隔で生成する。
@@ -219,11 +219,13 @@ class LabView(APIView):
 
         except ModuleNotFoundError:
             # モジュールが見つからない場合
-            raise ValidationError({"module": [f"Module '{module_name}' not found in lab directory."]})
+            raise ValidationError({"module": [f"Module '{module_name}' not found in lab directory."]}) from None
 
         except AttributeError:
             # get_spec 関数が見つからない場合
-            raise ValidationError({"module": [f"Module '{module_name}' does not have a 'get_spec' function."]})
+            raise ValidationError(
+                {"module": [f"Module '{module_name}' does not have a 'get_spec' function."]}
+            ) from None
 
     def post(self, request, *args, **kwargs):
         """
@@ -251,7 +253,7 @@ class LabView(APIView):
         response["Cache-Control"] = "no-cache"
         return response
 
-    def _create_lab_sse_stream(self, request: HttpRequest, module_name: str, args: dict) -> Generator[str, None, None]:
+    def _create_lab_sse_stream(self, request: HttpRequest, module_name: str, args: dict) -> Generator[str]:
         """
         Lab モジュール実行の SSE ストリームを作成する。
         """

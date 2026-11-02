@@ -1,70 +1,58 @@
-import importlib
 import logging
-from collections.abc import Generator
+from collections.abc import Callable, Generator, Iterator
 from typing import Any
+
+from .lab_module_loader import get_lab_function
 
 logger = logging.getLogger(__name__)
 
 
 class LabModuleExecuteSSEService:
     """
-    Lab モジュールをSSE形式で実行するサービスクラス。
+    Lab モジュールを実行して、 SSE で返すメッセージを作るサービスクラスです。
     """
 
-    def execute_module_sse(self, module_name: str, args: dict[str, Any]) -> Generator[str]:
+    def get_main_function(self, module_name: str) -> Callable[..., Any]:
         """
-        指定されたモジュールをSSE形式で実行する。
-        webapp.lab.{module_name} をインポートし、main 関数を実行してその結果をyieldする。
+        webapp.lab.{module_name} の main 関数を返します。
+        ストリームを始める前に呼んで、モジュールが使えるかどうかを確かめるために使います。
 
         Args:
             module_name (str): モジュール名
-            args (dict[str, Any]): モジュールに渡す引数
 
-        Yields:
-            str: SSE形式のメッセージ
+        Returns:
+            Callable[..., Any]: lab module の main 関数
 
         Raises:
-            ModuleNotFoundError: 指定されたモジュールが見つからない場合
-            AttributeError: モジュールに main 関数が定義されていない場合
+            LabModuleError: モジュールが見つからない場合、または main 関数が定義されていない場合
         """
-        logger.info(f"LabModuleExecuteSSEService.execute_module_sse called with module_name={module_name}, args={args}")
+        return get_lab_function(module_name, "main")
+
+    def execute_module_sse(self, main_func: Callable[..., Any], args: dict[str, Any]) -> Generator[str]:
+        """
+        main 関数を実行して、結果をメッセージ (str) として 1 件ずつ yield します。
+        main がジェネレータなら yield された値を順に、そうでなければ戻り値をひとつ返します。
+
+        NOTE: 例外はここでは握りつぶさずに呼び出し元へ投げます。
+              また、このジェネレータが close されたら (クライアントの切断など) main のジェネレータも close します。
+
+        Args:
+            main_func (Callable[..., Any]): lab module の main 関数
+            args (dict[str, Any]): main に渡す引数
+
+        Yields:
+            str: メッセージ
+        """
+        result = main_func(**args)
+
+        if not isinstance(result, Iterator):
+            yield str(result)
+            return
 
         try:
-            # webapp.lab.{module_name} をインポート
-            module_path = f"lab.{module_name}"
-            module = importlib.import_module(module_path)
-            logger.info(f"Successfully imported module: {module_path}")
-
-        except ModuleNotFoundError as e:
-            logger.error(f"Module not found: {module_name}")
-            raise ModuleNotFoundError(f"Module '{module_name}' not found in lab directory") from e
-
-        try:
-            # main 関数を取得
-            main_func = module.main
-            logger.info(f"Successfully found main function in module: {module_name}")
-
-        except AttributeError as e:
-            logger.error(f"main function not found in module: {module_name}")
-            raise AttributeError(f"Module '{module_name}' does not have a 'main' function") from e
-
-        try:
-            # main関数を実行してyield
-            result = main_func(**args)
-
-            # main関数がジェネレーターを返す場合
-            if hasattr(result, "__iter__") and hasattr(result, "__next__"):
-                try:
-                    yield from result
-                except Exception as e:
-                    logger.error(f"Error during generator execution in module {module_name}: {e}")
-                    yield f"ERROR: {str(e)}"
-            else:
-                # main関数が単一の値を返す場合
-                yield str(result)
-
-            logger.info(f"Successfully executed main function for module: {module_name}")
-
-        except Exception as e:
-            logger.error(f"Error executing main function in module {module_name}: {e}")
-            yield f"ERROR: {str(e)}"
+            for message in result:
+                yield str(message)
+        finally:
+            close = getattr(result, "close", None)
+            if callable(close):
+                close()

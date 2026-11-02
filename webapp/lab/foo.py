@@ -48,4 +48,6 @@ def main(**args) -> Generator[str]:
 
 
 if __name__ == "__main__":
-    main()
+    # NOTE: webapp ディレクトリで `python -m lab.foo` と打つと、ターミナルでも動かせます。
+    for message in main(arg1="12345", arg2="67890"):
+        print(message)

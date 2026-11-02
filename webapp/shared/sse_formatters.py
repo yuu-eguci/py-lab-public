@@ -1,6 +1,28 @@
 import json
+from collections.abc import Iterable
 
+from django.http import StreamingHttpResponse
 from django.utils import timezone
+
+
+def create_sse_response(stream: Iterable[str]) -> StreamingHttpResponse:
+    """
+    SSE のストリームを返す StreamingHttpResponse を作ります。
+
+    NOTE: Cache-Control: no-cache でキャッシュさせず、
+          X-Accel-Buffering: no で nginx などのプロキシにバッファさせないようにしています。
+          バッファされると、メッセージが逐一ではなく最後にまとめて届いてしまいます。
+
+    Args:
+        stream (Iterable[str]): SSEFormatter で整形したイベントを yield するもの
+
+    Returns:
+        StreamingHttpResponse: text/event-stream のレスポンス
+    """
+    response = StreamingHttpResponse(stream, content_type="text/event-stream")
+    response["Cache-Control"] = "no-cache"
+    response["X-Accel-Buffering"] = "no"
+    return response
 
 
 class SSEFormatter:
@@ -9,6 +31,7 @@ class SSEFormatter:
     NOTE: マイ SSE 勉強メモ
           SSE は、 StreamingHttpResponse + content_type="text/event-stream" で実現するっぽい。
           なんかよく分かんないんだが、 SSE では、 `data: ここにメッセージ\n\n` という形式を使うらしい。
+          payload は json.dumps で 1 行にしているので、メッセージ中の改行でイベントが割れることはありません。
           DOC: https://html.spec.whatwg.org/multipage/server-sent-events.html#server-sent-events
     """
 

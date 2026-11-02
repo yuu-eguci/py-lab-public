@@ -31,6 +31,18 @@ https://github.com/user-attachments/assets/c5119bfe-03f8-423e-b47b-b203d84270bc
     - React のフロントエンドから、実行したい script を選ぶ
     - ポチッと押すとその script が実行されて、進捗も見れるし結果もブラウザ上で得られる
 
+### SSE のしくみ
+
+- `GET /api/app/lab?module=foo` で、 lab module の仕様 (`get_spec()`) を JSON で返します。
+- `POST /api/app/lab` に `{"module": "foo", "args": {...}}` を送ると、 `webapp/lab/foo.py` の `main(**args)` を実行して、 yield された文字列を 1 件ずつ SSE (`text/event-stream`) で返します。
+    - 1 イベントは `data: {"requestId": "...", "data": {"message": "...", "sentAt": "..."}}` の 1 行です。メッセージ中の改行も JSON でエスケープされるので、イベントが途中で割れることはありません。
+    - 最後に `"message": "Stream completed"` のイベントを返します。
+    - 途中で例外が起きたら `"error"` を持つイベントを返して終わります (completion は返しません)。例外の中身は DEBUG のときだけ返して、それ以外はログにだけ出します。
+    - module が見つからないときや名前が不正なときは、ストリームを始めずに 400 を返します。
+    - プロキシにバッファされないよう `Cache-Control: no-cache` と `X-Accel-Buffering: no` を付けています。
+    - クライアントが切断したら、 lab module の generator も close します。
+- lab module は `webapp/lab/` に置いて、 `get_spec()` と `main(**args)` を定義します。名前は英小文字・数字・ `_` だけで、 `_` で始まるものは対象外です。
+
 このリポジトリは django-react-gemini を template にしている↓
 
 ***

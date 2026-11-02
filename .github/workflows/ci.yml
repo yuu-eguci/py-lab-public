@@ -75,6 +75,10 @@ jobs:
         run: yarn lint
         working-directory: ./webapp/frontend-react
 
+      - name: Run type check and build
+        run: yarn build
+        working-directory: ./webapp/frontend-react
+
       - name: Run React tests
         # run 無し: watch mode
         # run 有り: いつもの

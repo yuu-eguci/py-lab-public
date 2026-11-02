@@ -7,7 +7,7 @@ py-lab-public
 
 - Docker: 対応!
 - Python 3.14 / Django 6.1 / Django REST framework 3.18 / MySQL 8.4
-- Node.js 22 / React 19 / Vite 6 / MUI 7
+- Node.js 24 / React 19 / Vite 8 / MUI 9
 - Linter: Ruff, ESLint
 - Tests: Django test runner, Vitest (GitHub Actions で PR ごとに実行します)
 - Quick start: `cp ./local.env ./.env && cp ./webapp-container/Dockerfile.local ./webapp-container/Dockerfile && docker compose up -d` (このあとの手順は下の「runserver と yarn dev で起動するところまで」にあります)
@@ -69,7 +69,7 @@ django-react-gemini ♊
 
 ### React エリアのいいところ
 
-- `vite-tsconfig-paths` とか `react-router-dom` とか `react-i18next` とか導入済み。
+- `@/` の path alias (Vite の `resolve.tsconfigPaths`) とか `react-router-dom` とか `react-i18next` とか導入済み。
 - "さあオリジナリティ出していくぜ、" のひとつ前の段階まで揃えてある。
     - これ以上をやると、オリジナリティを出していくときの邪魔になる。
 
@@ -104,7 +104,7 @@ yarn -v
 # --> 1.22.22
 
 (cd ./frontend-react; yarn list react)
-# --> └─ react@19.1.0
+# --> └─ react@19.3.x
 
 # Django のほう。
 # NOTE: PIPENV_VENV_IN_PROJECT は env で設定してある。
@@ -132,5 +132,6 @@ time pipenv run python manage.py test --failfast --parallel --settings=config.se
 
 ```bash
 # i18n commands.
-(cd ./frontend-react; yarn run i18next "./src/App.tsx" "./src/**/*.tsx" --config "./i18next-parser.config.js")
+# NOTE: 設定は ./frontend-react/i18next.config.ts にあります。
+(cd ./frontend-react; yarn i18n:extract)
 ```

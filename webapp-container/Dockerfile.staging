@@ -9,9 +9,8 @@ RUN apt-get update && \
     nginx curl && \
     # NOTE: Debian の nodejs は古めです。
     #       でも react-router-dom が新しめの node を要求してくる。
-    #       Node の公式リポジトリから setup_current を使うと最新版が手に入る。
-    #       しかし最新版は新しすぎるようで、 22 を指定。
-    curl -fsSL https://deb.nodesource.com/setup_22.x | bash && \
+    #       NodeSource から LTS の 24 を入れています。
+    curl -fsSL https://deb.nodesource.com/setup_24.x | bash && \
     apt-get install -y nodejs && \
     # キャッシュクリア。
     apt-get clean && \

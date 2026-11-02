@@ -1,5 +1,13 @@
 {
-  "Button がクリックされた!": "Button がクリックされた!",
-  "Welcome to the Home Page": "Welcome to the Home Page",
-  "Click Me": "Click Me"
+  "Web も Terminal も好きな Pythonista の欲張りセット": "Web も Terminal も好きな Pythonista の欲張りセット",
+  "← こっちで Python プログラムの仕様をゲットして、こっちでそれを実行する! →": "← こっちで Python プログラムの仕様をゲットして、こっちでそれを実行する! →",
+  "こっちでプログラムの仕様をゲット": "こっちでプログラムの仕様をゲット",
+  "仕様取得結果": "仕様取得結果",
+  "読み込み中...": "読み込み中...",
+  "エラー": "エラー",
+  "こっちで Python を SSE で実行する": "こっちで Python を SSE で実行する",
+  "SSE 実行結果": "SSE 実行結果",
+  "SSE = Server-Sent Events": "SSE = Server-Sent Events",
+  "サーバ側からクライアント側へリアルタイムでデータを送ってくるやつ。": "サーバ側からクライアント側へリアルタイムでデータを送ってくるやつ。",
+  "実行中...": "実行中..."
 }

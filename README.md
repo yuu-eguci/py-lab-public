@@ -55,7 +55,7 @@ django-react-gemini ♊
     - gunicorn が内蔵の wsgi サーバのみならず uvicorn を動かせるように設定する
     - そうすると gunicorn が uvicorn を worker として動かして、
     - uvicorn は asgi サーバとして django を配信してくれる!
-- GitHub Actions で ruff, test がちゃんと走るよ。
+- GitHub Actions で ruff, test がちゃんと走るよ。 main への push と PR で動きます。
 - プロジェクト内部のモジュールをインポートするときは、つねに相対インポートを使ってる (3rd party との区別のため) よ。
 
 ### React エリアのいいところ

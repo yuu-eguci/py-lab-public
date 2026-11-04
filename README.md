@@ -41,6 +41,9 @@ https://github.com/user-attachments/assets/c5119bfe-03f8-423e-b47b-b203d84270bc
     - module が見つからないときや名前が不正なときは、ストリームを始めずに 400 を返します。
     - プロキシにバッファされないよう `Cache-Control: no-cache` と `X-Accel-Buffering: no` を付けています。
     - クライアントが切断したら、 lab module の generator も close します。
+- フロント (React) は POST したいので EventSource ではなく fetch のストリームで受け取って、 `src/utils/sse.ts` でイベントに分けています。
+    - チャンクの境目で行が割れても、改行が `\n` / `\r\n` / `\r` のどれでも大丈夫です。
+    - error イベントは画面にエラーとして出します。実行中はボタンを押せません。
 - lab module は `webapp/lab/` に置いて、 `get_spec()` と `main(**args)` を定義します。名前は英小文字・数字・ `_` だけで、 `_` で始まるものは対象外です。
 
 このリポジトリは django-react-gemini を template にしている↓

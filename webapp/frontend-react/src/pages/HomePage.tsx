@@ -1,4 +1,5 @@
 import PageHeader from "@/components/PageHeader";
+import { createSSEParser, parseLabEvent } from "@/utils/sse";
 import { PlayArrow } from "@mui/icons-material";
 import {
   Box,
@@ -110,35 +111,26 @@ function HomePage() {
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
+      // NOTE: チャンクの境目で行が割れることがあるので、パーサにためながらイベント単位で取り出します。
+      const parser = createSSEParser();
 
       while (true) {
         const { done, value } = await reader.read();
+        const text = done ? decoder.decode() : decoder.decode(value, { stream: true });
+
+        for (const event of parser.push(text)) {
+          const entry = parseLabEvent(event.data);
+          if (entry === null) {
+            console.warn("Failed to parse SSE data:", event.data);
+          } else if (entry.kind === "error") {
+            setRightError(entry.text);
+          } else {
+            setRightResult((prev) => `${prev}${entry.text}\n\n`);
+          }
+        }
 
         if (done) {
           break;
-        }
-
-        const chunk = decoder.decode(value, { stream: true });
-        const lines = chunk.split("\n");
-
-        for (const line of lines) {
-          if (line.startsWith("data: ")) {
-            try {
-              const jsonStr = line.substring(6); // "data: " を除去
-              const eventData = JSON.parse(jsonStr);
-
-              if (
-                eventData.data &&
-                eventData.data.message &&
-                eventData.data.sentAt
-              ) {
-                const formattedMessage = `[${eventData.data.sentAt}]\n${eventData.data.message}\n\n`;
-                setRightResult((prev) => prev + formattedMessage);
-              }
-            } catch {
-              console.warn("Failed to parse SSE data:", line);
-            }
-          }
         }
       }
     } catch (err) {
@@ -194,6 +186,7 @@ function HomePage() {
             size="large"
             startIcon={<PlayArrow />}
             onClick={handleLeftButtonClick}
+            disabled={leftLoading}
             sx={{
               width: "100%",
               minHeight: 80,
@@ -269,6 +262,7 @@ function HomePage() {
             size="large"
             startIcon={<PlayArrow />}
             onClick={handleRightButtonClick}
+            disabled={rightLoading}
             sx={{
               width: "100%",
               minHeight: 80,

@@ -1,3 +1,5 @@
+import os
+
 from .settings import *  # noqa: F401, F403
 
 INSTALLED_APPS = [
@@ -21,4 +23,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-DEBUG = True
+# NOTE: staging は外から見えるので DEBUG は切っています。 (エラーページに設定の中身が出てしまうため。)
+DEBUG = False
+
+# 受け付けるドメインです。 .env の DJANGO_ALLOWED_HOSTS にカンマ区切りで書きます。
+ALLOWED_HOSTS = [host.strip() for host in os.environ.get('DJANGO_ALLOWED_HOSTS', 'localhost').split(',')]
+ALLOWED_HOSTS = [host for host in ALLOWED_HOSTS if host]

@@ -65,7 +65,7 @@ django-react-gemini ♊
     - React yarn dev (5173) -> docker-compose portforward (5001) -> localhost:5001
 - Ubuntu 環境:
     - Django Dockerfile gunicorn (8000) -> docker-compose portforward (8001) -> nginx (80) -> domain:80
-    - 
+    - staging (`config.settings_staging`) は `DEBUG = False` です。受け付けるドメインは .env の `DJANGO_ALLOWED_HOSTS` にカンマ区切りで書きます (例: `DJANGO_ALLOWED_HOSTS=example.com,localhost`)。
 
 ### Django エリアのいいところ
 

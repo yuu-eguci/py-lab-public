@@ -74,6 +74,7 @@ sudo chown -R $(whoami):$(whoami) /var/www/${REPO_NAME}
 # .env を用意する
 cp /var/www/${REPO_NAME}/local.env /var/www/${REPO_NAME}/.env
 # ここで .env をちゃんとしたものへ編集。 Remote-SSH のおかげでラク。
+# NOTE: DJANGO_ALLOWED_HOSTS にドメインをカンマ区切りで書いてください。無いと localhost しか受け付けません。
 
 # Dockefile を用意する
 cp /var/www/${REPO_NAME}/webapp-container/Dockerfile.staging /var/www/${REPO_NAME}/webapp-container/Dockerfile
